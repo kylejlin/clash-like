@@ -23,10 +23,6 @@
     "webpack-cli": "^2.1.5"
   },
   "dependencies": {
-    "howler": "^2.0.14",
-    "sha.js": "^2.4.11",
-    "three": "^0.93.0",
-    "three-gltf-loader": "^1.93.0",
-    "xorshift": "^1.1.1"
+    "three": "^0.93.0"
   }
 }
