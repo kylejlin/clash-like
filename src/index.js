@@ -148,10 +148,12 @@ window.addEventListener('touchmove', (e) => {
       const oldDist = op0.clone().sub(op1).length();
       const scale = dist / oldDist;
 
-      const oldMp = p0.clone().add(p1).multiplyScalar(0.5);
+      const newMp = p0.clone().add(p1).multiplyScalar(0.5);
+      // const offset = oldMp.clone().sub(world.position).multiplyScalar(scale);
+      const oldMp = op0.clone().add(op1).multiplyScalar(0.5);
       const offset = oldMp.clone().sub(world.position).multiplyScalar(scale);
-      const newMp = world.position.clone().add(offset);
-      const displacement = newMp.clone().sub(oldMp);
+      const newMpScaled = world.position.clone().add(offset);
+      const displacement = newMpScaled.clone().sub(newMp);
 
       world.scale.multiplyScalar(scale);
       world.position.sub(displacement);
