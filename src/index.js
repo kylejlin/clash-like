@@ -1,12 +1,6 @@
 import * as THREE from 'three';
 
 const scene = new THREE.Scene();
-// const camera = new THREE.PerspectiveCamera(
-//   45,
-//   window.innerWidth / window.innerHeight,
-//   1,
-//   1e5,
-// );
 const camera = new THREE.OrthographicCamera(
   window.innerWidth / -2,
   window.innerWidth / 2,
@@ -17,14 +11,21 @@ const camera = new THREE.OrthographicCamera(
 );
 const renderer = new THREE.WebGLRenderer();
 
+const render = () => {
+  renderer.render(scene, camera);
+};
+
 scene.background = new THREE.Color(0xb3e7f9);
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.left = window.innerWidth / -2;
+  camera.right = window.innerWidth / 2;
+  camera.top = window.innerHeight / 2;
+  camera.bottom = window.innerHeight / -2;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.render(scene, camera);
+  render();
 });
 document.body.appendChild(renderer.domElement);
 
@@ -65,10 +66,6 @@ hitbox.position.set(0, 0, 0);
 hitbox.material.transparent = true;
 hitbox.material.opacity = 0;
 world.add(hitbox);
-
-const render = () => {
-  renderer.render(scene, camera);
-};
 
 render();
 
