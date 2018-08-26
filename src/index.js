@@ -82,79 +82,87 @@ const updateLastTouches = (touchList) => {
   });
 };
 
+const handlePan = (touches) => {
+  const [x, y] = clientToNDC(touches[0].clientX, touches[0].clientY);
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+  const hits = raycaster.intersectObject(hitbox);
+  if (hits.length === 0) {
+    return;
+  }
+  const [{ point }] = hits;
+  const [oldX, oldY] = lastTouches[touches[0].identifier];
+  raycaster.setFromCamera(new THREE.Vector2(oldX, oldY), camera);
+  const oldHits = raycaster.intersectObject(hitbox);
+  if (oldHits.length === 0) {
+    return;
+  }
+  const [{ point: oldPoint }] = oldHits;
+  const delta = point.clone().sub(oldPoint);
+  delta.y = 0;
+  world.position.add(delta);
+};
+
+const handleZoom = (touches) => {
+  const raycaster = new THREE.Raycaster();
+  const [x0, y0] = clientToNDC(touches[0].clientX, touches[0].clientY);
+  raycaster.setFromCamera(new THREE.Vector2(x0, y0), camera);
+  const hits0 = raycaster.intersectObject(hitbox);
+  if (hits0.length === 0) {
+    return;
+  }
+  const [{ point: p0 }] = hits0;
+  const [ox0, oy0] = lastTouches[touches[0].identifier];
+  raycaster.setFromCamera(new THREE.Vector2(ox0, oy0), camera);
+  const oldHits0 = raycaster.intersectObject(hitbox);
+  if (oldHits0.length === 0) {
+    return;
+  }
+  const [{ point: op0 }] = oldHits0;
+  p0.y = 0;
+  op0.y = 0;
+  const [x1, y1] = clientToNDC(touches[1].clientX, touches[1].clientY);
+  raycaster.setFromCamera(new THREE.Vector2(x1, y1), camera);
+  const hits1 = raycaster.intersectObject(hitbox);
+  if (hits1.length === 0) {
+    return;
+  }
+  const [{ point: p1 }] = hits1;
+  const [ox1, oy1] = lastTouches[touches[1].identifier];
+  raycaster.setFromCamera(new THREE.Vector2(ox1, oy1), camera);
+  const oldHits1 = raycaster.intersectObject(hitbox);
+  if (oldHits1.length === 0) {
+    return;
+  }
+  const [{ point: op1 }] = oldHits1;
+  p1.y = 0;
+  op1.y = 0;
+  const dist = p0.clone().sub(p1).length();
+  const oldDist = op0.clone().sub(op1).length();
+  const scale = dist / oldDist;
+
+  const newMp = p0.clone().add(p1).multiplyScalar(0.5);
+  const oldMp = op0.clone().add(op1).multiplyScalar(0.5);
+  const offset = oldMp.clone().sub(world.position).multiplyScalar(scale);
+  const newMpScaled = world.position.clone().add(offset);
+  const displacement = newMpScaled.clone().sub(newMp);
+
+  world.scale.multiplyScalar(scale);
+  world.position.sub(displacement);
+};
+
 window.addEventListener('touchstart', (e) => {
   updateLastTouches(e.changedTouches);
 });
 window.addEventListener('touchmove', (e) => {
   e.preventDefault();
-  if (e.touches.length === 1) {
-    const [x, y] = clientToNDC(e.touches[0].clientX, e.touches[0].clientY);
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
-    const hits = raycaster.intersectObject(hitbox);
-    if (hits.length === 0) {
-      return;
-    }
-    const [{ point }] = hits;
-    const [oldX, oldY] = lastTouches[e.touches[0].identifier];
-    raycaster.setFromCamera(new THREE.Vector2(oldX, oldY), camera);
-    const oldHits = raycaster.intersectObject(hitbox);
-    if (oldHits.length === 0) {
-      return;
-    }
-    const [{ point: oldPoint }] = oldHits;
-    const delta = point.clone().sub(oldPoint);
-    delta.y = 0;
-    world.position.add(delta);
-  } else if (e.touches.length === 2) {
-    const raycaster = new THREE.Raycaster();
-    const [x0, y0] = clientToNDC(e.touches[0].clientX, e.touches[0].clientY);
-    raycaster.setFromCamera(new THREE.Vector2(x0, y0), camera);
-    const hits0 = raycaster.intersectObject(hitbox);
-    if (hits0.length === 0) {
-      return;
-    }
-    const [{ point: p0 }] = hits0;
-    const [ox0, oy0] = lastTouches[e.touches[0].identifier];
-    raycaster.setFromCamera(new THREE.Vector2(ox0, oy0), camera);
-    const oldHits0 = raycaster.intersectObject(hitbox);
-    if (oldHits0.length === 0) {
-      return;
-    }
-    const [{ point: op0 }] = oldHits0;
-    p0.y = 0;
-    op0.y = 0;
-    const [x1, y1] = clientToNDC(e.touches[1].clientX, e.touches[1].clientY);
-    raycaster.setFromCamera(new THREE.Vector2(x1, y1), camera);
-    const hits1 = raycaster.intersectObject(hitbox);
-    if (hits1.length === 0) {
-      return;
-    }
-    const [{ point: p1 }] = hits1;
-    const [ox1, oy1] = lastTouches[e.touches[1].identifier];
-    raycaster.setFromCamera(new THREE.Vector2(ox1, oy1), camera);
-    const oldHits1 = raycaster.intersectObject(hitbox);
-    if (oldHits1.length === 0) {
-      return;
-    }
-    const [{ point: op1 }] = oldHits1;
-    p1.y = 0;
-    op1.y = 0;
-    const dist = p0.clone().sub(p1).length();
-    const oldDist = op0.clone().sub(op1).length();
-    const scale = dist / oldDist;
-
-    const newMp = p0.clone().add(p1).multiplyScalar(0.5);
-    // const offset = oldMp.clone().sub(world.position).multiplyScalar(scale);
-    const oldMp = op0.clone().add(op1).multiplyScalar(0.5);
-    const offset = oldMp.clone().sub(world.position).multiplyScalar(scale);
-    const newMpScaled = world.position.clone().add(offset);
-    const displacement = newMpScaled.clone().sub(newMp);
-
-    world.scale.multiplyScalar(scale);
-    world.position.sub(displacement);
+  const { touches, changedTouches } = e;
+  if (touches.length === 1) {
+    handlePan(touches);
+  } else if (touches.length === 2) {
+    handleZoom(touches);
   }
-  updateLastTouches(e.changedTouches);
+  updateLastTouches(changedTouches);
   render();
 }, { passive: false });
 window.addEventListener('touchend', (e) => {
